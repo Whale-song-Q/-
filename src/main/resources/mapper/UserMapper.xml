@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.quhaiming.dao.GoodsDao">
+
+	<select id="listGoods" resultMap="GoodsMap">
+	
+	select *from t_goods 
+	<where>
+	  <if test="mohu!=null and mohu!=''">
+	  and name like concat('%',#{mohu},'%')
+	  </if>
+	</where>
+
+	</select>
+	<!--类型子查询  -->
+	<select id="listTyByid" resultType="Types">
+	SELECT g.*,t.id as cid,t.cname from t_goods g JOIN t_type t on g.type_id=t.id where g.id=${value}
+	</select>
+	<!--品牌子查询  -->
+	<select id="listTbByid" resultType="Tbrand">
+	SELECT g.*,b.tb_tname as tname FROM t_goods g JOIN t_brand b on g.tb_id=b.tb_id WHERE g.id=${value}
+	</select>
+	
+	
+	<resultMap type="Goods" id="GoodsMap">
+		<id property="id" column="id"/>
+		<result property="name" column="name"/>
+		<result property="datea" column="datea"/>
+		<result property="price" column="price"/>
+		<result property="status" column="status"/>
+		<association 
+		property="types" 
+		select="com.quhaiming.dao.GoodsDao.listTyByid"
+		javaType="Types"
+		column="id"
+		>
+		<id property="cid" column="id"/>
+		<result property="cname" column="cname"/>
+		</association>
+		<association 
+		property="tbrand" 
+		select="com.quhaiming.dao.GoodsDao.listTbByid"
+		javaType="Tbrand"
+		column="id"
+		>
+		<id property="tbid" column="tb_id"/>
+		<result property="tname" column="tb_tname"/>
+		</association>
+	</resultMap>
+	<!-- 品牌注入查询 -->
+	<select id="listTb" resultType="Tbrand">
+	SELECT t.tb_id as tbid,t.tb_tname as tname from t_brand t
+	</select>
+    <!-- 分类注入查询 -->
+	<select id="listTy" resultType="Types">
+	SELECT t2.id as cid,t2.cname as cname from t_type t2
+	</select>
+	<!-- 添加方法 -->
+	<insert id="addGoods" useGeneratedKeys="true" keyProperty="id">
+     insert into t_goods values(0,#{name},'2019-12-01',#{tbrand.tbid},#{price},0,#{types.cid})
+	</insert>
+	<!--删除  -->
+	<delete id="deleAll">
+	 DELETE from t_goods  where t_goods.id in(${value}) 
+	</delete>
+	<!-- 修改回显 -->
+	<select id="toupdate" resultMap="GoodsMap">
+	
+	select *from t_goods where id=${value}
+	</select>
+	<update id="update">
+	update t_goods set name=#{name},tb_id=#{tbrand.tbid},price=#{price},type_id=#{types.cid} where id=#{id}
+	
+	</update>
+	
+	
+	
+	
+	
+
+</mapper>
